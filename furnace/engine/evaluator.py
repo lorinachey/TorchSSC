@@ -80,11 +80,6 @@ class Evaluator(object):
             else:
                 models = [None]
 
-        # Ensure the directory exists
-        # log_dir = os.path.dirname(log_file)
-        # if not os.path.exists(log_dir):
-        #     os.makedirs(log_dir)
-
         if not os.path.exists(log_file):
             os.makedirs(os.path.dirname(log_file), exist_ok=True)  # Create the directory if it doesn't exist
             with open(log_file, 'a') as results:  # Just open and close the file to create it if it doesn't exist
