@@ -80,26 +80,31 @@ class Evaluator(object):
             else:
                 models = [None]
 
-        results = open(log_file, 'a')
-        link_file(log_file, log_file_link)
+        # Ensure the directory exists
+        # log_dir = os.path.dirname(log_file)
+        # if not os.path.exists(log_dir):
+        #     os.makedirs(log_dir)
 
-        for model in models:
-            logger.info("Load Model: %s" % model)
-            self.val_func = load_model(self.network, model)
-            #from IPython import embed; embed()
-            if len(self.devices ) == 1:
-                result_line = self.single_process_evalutation()
-            else:
-                result_line = self.multi_process_evaluation()
+        if not os.path.exists(log_file):
+            os.makedirs(os.path.dirname(log_file), exist_ok=True)  # Create the directory if it doesn't exist
+            with open(log_file, 'a') as results:  # Just open and close the file to create it if it doesn't exist
+                link_file(log_file, log_file_link)
+                for model in models:
+                    logger.info("Load Model: %s" % model)
+                    self.val_func = load_model(self.network, model)
+                    #from IPython import embed; embed()
 
-            results.write('Model: ' + model + '\n')
-            results.write(result_line)
-            results.write('\n')
-            results.flush()
+                    if len(self.devices) == 1:
+                        result_line = self.single_process_evaluation()  # Corrected spelling
+                    else:
+                        result_line = self.multi_process_evaluation()
 
-        results.close()
+                    # Write results within the 'with' block to ensure 'results' is in scope and the file is managed correctly
+                    results.write('Model: ' + model + '\n')
+                    results.write(result_line + '\n')  # Simplified writing by combining lines
+                    results.flush()  # Ensure data is written to disk
 
-    def single_process_evalutation(self):
+    def single_process_evaluation(self):
         start_eval_time = time.perf_counter()
 
         logger.info(
@@ -114,8 +119,6 @@ class Evaluator(object):
             'Evaluation Elapsed Time: %.2fs' % (
                     time.perf_counter() - start_eval_time))
         return result_line
-
-
 
     def multi_process_evaluation(self):
         start_eval_time = time.perf_counter()
@@ -211,7 +214,7 @@ class Evaluator(object):
     def scale_process(self, img, ori_shape, crop_size, stride_rate,
                       device=None):
         new_rows, new_cols, c = img.shape
-        long_size = new_cols if new_cols > new_rows else new_rows
+        long_size = new_cols if new_cols > new_rows else new_rowsFERROR
 
         if long_size <= crop_size:
             input_data, margin = self.process_image(img, crop_size)

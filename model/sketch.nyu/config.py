@@ -19,7 +19,7 @@ cfg = C
 C.seed = 12345
 
 remoteip = os.popen('pwd').read()
-C.volna = '/home/chen/TorchSSC/'      # this is the path to your repo 'TorchSSC'
+C.volna = '/home/lorin/Documents/TorchSSC/'      # this is the path to your repo 'TorchSSC'
 
 
 """please config ROOT_dir and user when u first using"""

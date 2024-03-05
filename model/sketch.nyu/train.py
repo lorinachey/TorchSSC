@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributed as dist
+import torch.multiprocessing as mp
 import torch.backends.cudnn as cudnn
 
 from config import config
@@ -30,18 +31,22 @@ except ImportError:
     raise ImportError(
         "Please install apex from https://www.github.com/nvidia/apex .")
 
+if not dist.is_initialized():
+    dist.init_process_group(backend="nccl")
+
 parser = argparse.ArgumentParser()
 
 port = str(int(float(time.time())) % 20)
 os.environ['MASTER_PORT'] = str(10097 + int(port))
 
 with Engine(custom_parser=parser) as engine:
+    print("Started train.py")
     args = parser.parse_args()
 
     cudnn.benchmark = True
     seed = config.seed
     if engine.distributed:
-        seed = engine.local_rank
+        seed = dist.get_rank()
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
@@ -49,7 +54,7 @@ with Engine(custom_parser=parser) as engine:
     # data loader
     train_loader, train_sampler = get_train_loader(engine, NYUv2)
 
-    if engine.distributed and (engine.local_rank == 0):
+    if engine.distributed and (dist.get_rank() == 0):
         tb_dir = config.tb_dir + '/{}'.format(time.strftime("%b%d_%d-%H-%M", time.localtime()))
         generate_tb_dir = config.tb_dir + '/tb'
         logger = SummaryWriter(log_dir=tb_dir)
@@ -138,7 +143,8 @@ with Engine(custom_parser=parser) as engine:
             optimizer.zero_grad()
             engine.update_iteration(epoch, idx)
 
-            minibatch = dataloader.next()
+            #minibatch = dataloader.next()
+            minibatch = next(dataloader)
             img = minibatch['data']
             hha = minibatch['hha_img']
             label = minibatch['label']
@@ -238,7 +244,7 @@ with Engine(custom_parser=parser) as engine:
 
             pbar.set_description(print_str, refresh=False)
 
-        if engine.distributed and (engine.local_rank == 0):
+        if engine.distributed and (dist.get_rank() == 0):
             logger.add_scalar('train_loss/tot', sum_loss / len(pbar), epoch)
             logger.add_scalar('train_loss/semantic', sum_sem / len(pbar), epoch)
             logger.add_scalar('train_loss/sketch', sum_sketch / len(pbar), epoch)
@@ -248,7 +254,7 @@ with Engine(custom_parser=parser) as engine:
             logger.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
         if (epoch > config.nepochs // 4) and (epoch % config.snapshot_iter == 0) or (epoch == config.nepochs - 1):
-            if engine.distributed and (engine.local_rank == 0):
+            if engine.distributed and (dist.get_rank() == 0):
                 engine.save_and_link_checkpoint(config.snapshot_dir,
                                                 config.log_dir,
                                                 config.log_dir_link)

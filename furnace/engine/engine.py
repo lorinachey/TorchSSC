@@ -11,6 +11,7 @@ import argparse
 
 import torch
 import torch.distributed as dist
+import torch.multiprocessing as mp
 
 from .logger import get_logger
 from .version import __version__
@@ -53,21 +54,21 @@ class Engine(object):
 
         self.inject_default_parser()
         self.args = self.parser.parse_args()
-
         self.continue_state_object = self.args.continue_fpath
 
         if 'WORLD_SIZE' in os.environ:
             self.distributed = int(os.environ['WORLD_SIZE']) >= 1
+            self.world_size = int(os.environ['WORLD_SIZE'])
 
         if self.distributed:
-            self.local_rank = self.args.local_rank
-            self.world_size = int(os.environ['WORLD_SIZE'])
-            torch.cuda.set_device(self.local_rank)
-            os.environ['MASTER_PORT'] = self.args.port
-            dist.init_process_group(backend="nccl", init_method='env://')
+            rank = int(os.environ['RANK'])
+            torch.cuda.set_device(rank)
+            print("Before set devices")
             self.devices = [i for i in range(self.world_size)]
+            print("Self.devices: ", self.devices)
         else:
             self.devices = parse_devices(self.args.devices)
+            print("Not distributed: ", self.devices)
 
     def inject_default_parser(self):
         p = self.parser
