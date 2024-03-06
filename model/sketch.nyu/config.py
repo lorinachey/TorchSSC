@@ -68,10 +68,14 @@ C.num_classes = 12
 C.background = 255
 C.image_mean = np.array([0.485, 0.456, 0.406])
 C.image_std = np.array([0.229, 0.224, 0.225])
-C.image_height = 480
-C.image_width = 640
+# C.image_height = 480
+# C.image_width = 640
+C.image_height = 256
+C.image_width = 256
+# C.num_train_imgs = 795
+# C.num_eval_imgs = 654
 C.num_train_imgs = 795
-C.num_eval_imgs = 654
+C.num_eval_imgs = 2
 
 """ Settings for network, this would be different for each kind of model"""
 C.fix_bias = True
@@ -84,7 +88,8 @@ C.lr = 0.1
 C.lr_power = 0.9
 C.momentum = 0.9
 C.weight_decay = 5e-4
-C.batch_size = 4
+# C.batch_size = 4
+C.batch_size = 1
 C.nepochs = 250
 C.niters_per_epoch = 795 // C.batch_size
 C.num_workers = C.batch_size
@@ -97,8 +102,8 @@ C.eval_iter = 30
 C.eval_stride_rate = 2 / 3
 C.eval_scale_array = [1, ]
 C.eval_flip = False
-C.eval_base_size = 480
-C.eval_crop_size = 640
+C.eval_base_size = 256
+C.eval_crop_size = 256
 
 """Display Config"""
 C.snapshot_iter = 10

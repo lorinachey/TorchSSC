@@ -77,7 +77,8 @@ class NYUv2(BaseDataset):
             names = self._file_names[index]
 
         item_idx = names[0]
-        img_path = os.path.join(self._img_path, 'RGB', 'NYU'+item_idx+'_colors.png')
+        #img_path = os.path.join(self._img_path, 'RGB', 'NYU'+item_idx+'_colors.png')
+        img_path = os.path.join(self._img_path, 'RGB', item_idx+'.png')
         hha_path = os.path.join(self._hha_path, item_idx+'.png')
         gt_path = os.path.join(self._gt_path, 'Label/'+item_idx+'.npz')
         label_weight_path = os.path.join(self._img_path, 'TSDF/'+item_idx+'.npz')

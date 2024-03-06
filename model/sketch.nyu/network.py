@@ -420,7 +420,6 @@ class STAGE2(nn.Module):
 
         segres = [torch.index_select(segVec[i], 0, depth_mapping_3d[i]) for i in range(b)]
         segres = torch.stack(segres).permute(0, 2, 1).contiguous().view(b, c, 60, 36, 60)  # B, (channel), 60, 36, 60
-
         '''
         init the 3D feature
         '''
@@ -514,9 +513,13 @@ if __name__ == '__main__':
     model = model.to(device)
     model.eval()
 
-    left = torch.rand(1, 3, 480, 640).cuda()
-    right = torch.rand(1, 3, 480, 640).cuda()
+    left = torch.rand(1, 3, 256, 256).cuda()
+    right = torch.rand(1, 3, 256, 256).cuda()
+
+    # The author hardcoded these magic numbers in here for the NYU dataset specs
+    # 129600 = 60x36x60
     depth_mapping_3d = torch.from_numpy(np.ones((1, 129600)).astype(np.int64)).long().cuda()
+
     tsdf = torch.rand(1, 1, 60, 36, 60).cuda()
 
     out = model(left, depth_mapping_3d, tsdf, None)
